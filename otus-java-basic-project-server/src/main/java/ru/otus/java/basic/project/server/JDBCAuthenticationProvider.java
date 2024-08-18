@@ -14,9 +14,11 @@ public class JDBCAuthenticationProvider implements AuthenticationProvider, AutoC
     /**
      * Creates an authentication provider based on PostgresSQL database.
      * Establishes PostgresSQL connection based on environment variables:
-     * OTUS_PROJECT_DB_ADDR=address:port/database_name
-     * OTUS_PROJECT_DB_USER=database_user_name
-     * OTUS_PROJECT_DB_PWD=database_user_password
+     * <ul>
+     *     <li>OTUS_PROJECT_DB_ADDR=address:port/database_name</li>
+     *     <li>OTUS_PROJECT_DB_USER=database_user_name</li>
+     *     <li>OTUS_PROJECT_DB_PWD=database_user_password</li>
+     * </ul>
      */
     public JDBCAuthenticationProvider() throws AuthenticationException {
         String address = System.getenv("OTUS_PROJECT_DB_ADDR");
@@ -151,8 +153,11 @@ public class JDBCAuthenticationProvider implements AuthenticationProvider, AutoC
     @Override
     public synchronized void register(String login, String password) throws AuthenticationException {
         try {
-            if (login.length() < 3 || password.length() < 6) {
-                throw new AuthenticationException("Login must be 3+ symbols, password 6+ symbols");
+            if (login.length() < 3 || login.length() > 15 || password.length() < 6) {
+                throw new AuthenticationException("Login must be 3..15 symbols, password 6+ symbols");
+            }
+            if (!login.chars().allMatch(Character::isLetterOrDigit)) {
+                throw new AuthenticationException("Login must contain only alphanumeric characters");
             }
             if (isLoginExists(login)) {
                 throw new AuthenticationException("Login is already registered");
