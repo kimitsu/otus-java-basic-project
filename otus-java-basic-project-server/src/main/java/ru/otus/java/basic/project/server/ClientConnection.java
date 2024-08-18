@@ -128,11 +128,19 @@ public class ClientConnection implements AutoCloseable {
             throw new MessageProcessingException(new InvalidContextException("Context already exists"));
         }
         Context context = new Context(clientMessage.getContextId());
+        try {
+            server.authenticate(clientMessage.getName(), clientMessage.getPassword(), clientMessage.isRegister());
+        } catch (AuthenticationException e) {
+            send(new ErrorServerMessage(context.getId(), e.getMessage()));
+            close();
+            return;
+        }
         name = clientMessage.getName();
         try {
             server.addClient(this);
         } catch (ClientNameAlreadyTaken e) {
-            send(new ErrorServerMessage(context.getId(), "Client name already taken"));
+            send(new ErrorServerMessage(context.getId(), "Client has already logged in"));
+            this.name = null;
             close();
             return;
         }

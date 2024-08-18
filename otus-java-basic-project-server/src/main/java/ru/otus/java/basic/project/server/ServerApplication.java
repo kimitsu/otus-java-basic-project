@@ -2,6 +2,7 @@ package ru.otus.java.basic.project.server;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import ru.otus.java.basic.project.server.exceptions.AuthenticationException;
 
 import java.io.IOException;
 
@@ -33,6 +34,8 @@ public class ServerApplication {
             log.fatal("Invalid port number");
         } catch (IOException e) {
             log.fatal("Server socket error", e);
+        } catch (AuthenticationException e) {
+            log.fatal("Authentication provider error", e);
         }
         log.info("Server stopped");
         synchronized (mainThread) {

@@ -13,6 +13,7 @@ public class LoginWindow {
     private static final Logger log = LogManager.getLogger(LoginWindow.class);
     private final JFrame frame;
     private final JTextField nameField;
+    private final JTextField passwordField;
     private final JTextField hostPortField;
     private final Client client;
 
@@ -23,18 +24,24 @@ public class LoginWindow {
         JPanel fieldsPanel = new JPanel(new SpringLayout());
         fieldsPanel.add(new JLabel("Name"));
         this.nameField = new JTextField(16);
-        this.nameField.setText("admin");
         fieldsPanel.add(nameField);
+
+        fieldsPanel.add(new JLabel("Password"));
+        this.passwordField = new JPasswordField(16);
+        fieldsPanel.add(passwordField);
+
         fieldsPanel.add(new JLabel("Server Host:Port"));
         this.hostPortField = new JTextField(16);
         this.hostPortField.setText("localhost");
         fieldsPanel.add(hostPortField);
-        SwingUtils.makeCompactGrid(fieldsPanel, 2, 2, 8, 8);
+
+        SwingUtils.makeCompactGrid(fieldsPanel, 3, 2, 8, 8);
 
         JPanel buttonsPanel = new JPanel(new SpringLayout());
-        buttonsPanel.add(SwingUtils.makeButton("Login", (_) -> connectAndLogin(hostPortField.getText(), nameField.getText())));
+        buttonsPanel.add(SwingUtils.makeButton("Login", (_) -> connectAndLogin(hostPortField.getText(), nameField.getText(), passwordField.getText(), false)));
+        buttonsPanel.add(SwingUtils.makeButton("Register", (_) -> connectAndLogin(hostPortField.getText(), nameField.getText(), passwordField.getText(), true)));
         buttonsPanel.add(SwingUtils.makeButton("Exit", (_) -> SwingUtils.close(this.frame)));
-        SwingUtils.makeCompactGrid(buttonsPanel, 1, 2, 8, 8);
+        SwingUtils.makeCompactGrid(buttonsPanel, 1, 3, 8, 8);
 
         this.frame.getContentPane().setLayout(new BoxLayout(this.frame.getContentPane(), BoxLayout.Y_AXIS));
         this.frame.getContentPane().add(fieldsPanel);
@@ -60,9 +67,9 @@ public class LoginWindow {
         frame.setVisible(true);
     }
 
-    public void connectAndLogin(String hostPort, String name) {
+    public void connectAndLogin(String hostPort, String name, String password, boolean register) {
         SwingUtils.setEnabled(frame.getContentPane(), false);
-        client.connectAndLoginAsync(hostPort, name)
+        client.connectAndLoginAsync(hostPort, name, password, register)
                 .thenRun(() -> {
                     log.trace("Hiding login window");
                     frame.setVisible(false);

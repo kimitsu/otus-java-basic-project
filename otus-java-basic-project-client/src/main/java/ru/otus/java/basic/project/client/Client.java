@@ -48,6 +48,7 @@ public class Client implements AutoCloseable {
     }
 
     public void close() {
+        serverConnection.setDisconnectListener(null);
         if (serverConnection != null) serverConnection.close();
         executorService.shutdownNow();
         executorService.close();
@@ -82,15 +83,11 @@ public class Client implements AutoCloseable {
         gameWindow.show(lobbyWindow.getFrame());
     }
 
-    public CompletableFuture<Void> connectAndLoginAsync(String hostPort, String name) {
+    public CompletableFuture<Void> connectAndLoginAsync(String hostPort, String name, String password, boolean register) {
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
             try {
                 log.trace("Creating server connection");
-                serverConnection = new ServerConnection(hostPort, name);
-                serverConnection.setDisconnectListener(() -> {
-                    JOptionPane.showMessageDialog(null, "Disconnected from server", "Error", JOptionPane.ERROR_MESSAGE);
-                    close();
-                });
+                serverConnection = new ServerConnection(hostPort, name, password, register);
                 log.trace("Server connection created");
             } catch (IllegalArgumentException e) {
                 throw new ApplicationException("Incorrect input", e);
@@ -102,22 +99,26 @@ public class Client implements AutoCloseable {
                 throw new ApplicationException("Application error", e);
             }
         });
-        return future.thenCompose((result) -> loginAsync(name));
+        return future.thenCompose((result) -> loginAsync(name, password, register));
     }
 
-    public CompletableFuture<Void> loginAsync(String name) {
+    public CompletableFuture<Void> loginAsync(String name, String password, boolean register) {
         log.trace("Setting up future login");
         CompletableFuture<Void> future = new CompletableFuture<>();
         Context context = new Context(Context.getNewId());
         serverConnection.addContext(context);
         context.setListener(LoginConfirmedServerMessage.class, (LoginConfirmedServerMessage message) -> {
             this.name = name;
+            serverConnection.setDisconnectListener(() -> {
+                JOptionPane.showMessageDialog(null, "Disconnected from server", "Error", JOptionPane.ERROR_MESSAGE);
+                close();
+            });
             future.complete(null);
         });
         context.setListener(ErrorServerMessage.class, (ErrorServerMessage message) -> {
             future.completeExceptionally(new ExecutionException("Login Error", new ServerError(message.getErrorMessage())));
         });
-        submitFutureSend(future, new LoginClientMessage(context.getId(), name));
+        submitFutureSend(future, new LoginClientMessage(context.getId(), name, password, register));
         return future.whenComplete((result, e) -> {
             log.trace("Login future complete ({}, {})", result, e);
             serverConnection.removeContext(context);

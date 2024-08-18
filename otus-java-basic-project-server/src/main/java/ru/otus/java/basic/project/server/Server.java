@@ -6,6 +6,7 @@ import ru.otus.java.basic.project.api.context.ChallengeContext;
 import ru.otus.java.basic.project.api.enums.ChallengeResponse;
 import ru.otus.java.basic.project.api.exceptions.MessageProcessingException;
 import ru.otus.java.basic.project.api.messages.server.GameStateServerMessage;
+import ru.otus.java.basic.project.server.exceptions.AuthenticationException;
 import ru.otus.java.basic.project.server.exceptions.ClientBusyException;
 import ru.otus.java.basic.project.server.exceptions.ClientNameAlreadyTaken;
 import ru.otus.java.basic.project.server.exceptions.ClientNotFoundException;
@@ -19,16 +20,17 @@ import java.util.Map;
 
 public class Server implements AutoCloseable {
     private static final Logger log = LogManager.getLogger(Server.class);
-
+    private final AuthenticationProvider authenticationProvider;
     private final int port;
     private ServerSocket serverSocket;
     private final Map<String, ClientConnection> clients = new HashMap<>();
     private final Map<Long, Game> games = new HashMap<>();
     private boolean serverIsClosing = false;
 
-    public Server(int port) throws IOException {
+    public Server(int port) throws IOException, AuthenticationException {
         this.port = port;
         this.serverSocket = new ServerSocket(port);
+        this.authenticationProvider = new JDBCAuthenticationProvider();
     }
 
     public void start() {
@@ -157,6 +159,14 @@ public class Server implements AutoCloseable {
                 whiteConnection.removeGame();
                 blackConnection.removeGame();
             }
+        }
+    }
+
+    public void authenticate(String name, String password, boolean register) throws AuthenticationException {
+        if (register) {
+            authenticationProvider.register(name, password);
+        } else {
+            authenticationProvider.authenticate(name, password);
         }
     }
 }

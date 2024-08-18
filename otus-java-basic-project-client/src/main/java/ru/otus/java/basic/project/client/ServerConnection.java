@@ -22,7 +22,6 @@ public class ServerConnection implements AutoCloseable {
     private static final Logger log = LogManager.getLogger(ServerConnection.class);
     private static final int DEFAULT_PORT = 35555;
     private static final int SOCKET_TIMEOUT = 5000;
-    private final String name;
     private String host;
     private int port;
     private Socket socket;
@@ -32,7 +31,7 @@ public class ServerConnection implements AutoCloseable {
     private final Map<Long, Context> contexts = new HashMap<>();
     private Runnable disconnectListener = null;
 
-    public ServerConnection(String hostPort, String name)
+    public ServerConnection(String hostPort, String name, String password, boolean register)
             throws IOException, InvalidServerMessageException, IllegalArgumentException, ApplicationException {
         int delimiter = hostPort.indexOf(':');
         if (delimiter == -1) {
@@ -49,7 +48,6 @@ public class ServerConnection implements AutoCloseable {
         this.socket = new Socket(host, port);
         this.output = new DataOutputStream(this.socket.getOutputStream());
         this.input = new DataInputStream(this.socket.getInputStream());
-        this.name = name;
         // Default context which will handle messages with null new context ids
         this.contexts.put(null, new Context(null));
         new Thread(this::listen).start();
@@ -69,7 +67,6 @@ public class ServerConnection implements AutoCloseable {
             listener.process(message);
         } catch (ApplicationException | MessageProcessingException e) {
             log.error("Message dispatch error", e);
-            // TODO Hook to display error?
         }
     }
 
