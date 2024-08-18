@@ -5,6 +5,13 @@ import ru.otus.java.basic.project.server.exceptions.IllegalMoveException;
 import java.awt.*;
 import java.util.ArrayList;
 
+/**
+ * Represents a 19 by 19 go board.
+ * Stores board position (stones, last played move, dead stones and territory marking, amount of captured stones).
+ * Keeps track of forbidden moves.
+ * Allows to play moves, mark dead stones.
+ * Calculates score.
+ */
 public class Board {
     public static final int BOARD_SIZE = 19;
     public static final int BOARD_EMPTY = 0;
@@ -345,7 +352,6 @@ public class Board {
     public int getBlackTerritory() {
         return blackTerritory;
     }
-
 
     public int[][] getTerritory() {
         return territory;

@@ -18,13 +18,17 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Acts as a central controller of the server application.
+ * Listens to incoming connections, spawning a <code>ClientConnection</code> for each.
+ * Manages games, and acts as a mediator between different clients.
+ */
 public class Server implements AutoCloseable {
     private static final Logger log = LogManager.getLogger(Server.class);
     private final AuthenticationProvider authenticationProvider;
     private final int port;
     private ServerSocket serverSocket;
     private final Map<String, ClientConnection> clients = new HashMap<>();
-    private final Map<Long, Game> games = new HashMap<>();
     private boolean serverIsClosing = false;
 
     public Server(int port) throws IOException, AuthenticationException {

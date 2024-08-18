@@ -6,6 +6,9 @@ import ru.otus.java.basic.project.server.exceptions.AuthenticationException;
 
 import java.io.IOException;
 
+/**
+ * Software is never finished, only abandoned.
+ */
 public class ServerApplication {
     private static final Logger log = LogManager.getLogger(ServerApplication.class);
     private static final int DEFAULT_PORT = 35555;

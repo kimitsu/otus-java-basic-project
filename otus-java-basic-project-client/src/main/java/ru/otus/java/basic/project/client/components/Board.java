@@ -7,6 +7,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.function.Consumer;
 
+/**
+ * Custom component that displays a 19 by 19 go board, stones and territory markings,
+ * also may draw a ghost stone under the mouse cursor and allows to set listener for clicking the board.
+ */
 public class Board extends JPanel {
     public static final int BOARD_SIZE = 19;
     private static final int[] HOSHI_POSITIONS = new int[]{3, 9, 15};
@@ -247,10 +251,6 @@ public class Board extends JPanel {
 
     public void setCanMarkDeadStones(boolean canMarkDeadStones) {
         this.canMarkDeadStones = canMarkDeadStones;
-    }
-
-    public boolean getCanMarkDeadStones() {
-        return canMarkDeadStones;
     }
 
     public void setLastMove(Point point) {

@@ -18,10 +18,13 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Connects to the server, sends and receives messages.
+ * Received messages are dispatched based on their classes and context ids to appropriate listeners.
+ */
 public class ServerConnection implements AutoCloseable {
     private static final Logger log = LogManager.getLogger(ServerConnection.class);
     private static final int DEFAULT_PORT = 35555;
-    private static final int SOCKET_TIMEOUT = 5000;
     private String host;
     private int port;
     private Socket socket;

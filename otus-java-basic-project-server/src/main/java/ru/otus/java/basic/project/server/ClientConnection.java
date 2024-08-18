@@ -24,6 +24,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a connected client.
+ * Holds information about the client, its contexts and current game.
+ * Dispatches client messages to their appropriate processors.
+ * Sends server messages to the clients.
+ */
 public class ClientConnection implements AutoCloseable {
     private static final Logger log = LogManager.getLogger(ClientConnection.class);
     private static int idCounter = 0;

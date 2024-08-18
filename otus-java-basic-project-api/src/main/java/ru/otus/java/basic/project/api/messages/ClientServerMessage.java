@@ -9,6 +9,11 @@ import ru.otus.java.basic.project.api.messages.client.*;
 import ru.otus.java.basic.project.api.exceptions.MessageProcessingException;
 import ru.otus.java.basic.project.api.messages.server.*;
 
+/**
+ * A super-class for all client-server messages.
+ * Uses jackson to serialize/deserialize messages to various classes according to "m" JSON field.
+ * All messages contain contextId ("ctx") field, see <code>Context</code>
+ */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "m")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = LoginClientMessage.class, name = "LOGIN"),
@@ -51,10 +56,6 @@ public abstract class ClientServerMessage {
         } catch (JsonProcessingException e) {
             throw new MessageProcessingException(e);
         }
-    }
-
-    public void setContextId(Long context) {
-        this.contextId = context;
     }
 
     public Long getContextId() {

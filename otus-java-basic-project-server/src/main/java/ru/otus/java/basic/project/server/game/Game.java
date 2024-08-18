@@ -18,6 +18,10 @@ import ru.otus.java.basic.project.server.exceptions.IllegalMoveException;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+/**
+ * Represents a single go match.
+ * Contains information about the game, processes client messages related to the game.
+ */
 public class Game {
     private static final Logger log = LogManager.getLogger(Game.class);
 

@@ -198,8 +198,8 @@ public class GameWindow {
         updateBoardTerritory(message);
         updateGameState(message);
         lastMessage = message;
-        // TODO Remove debug random play
-        if (message.getLastMoveType() != MoveType.PASS) playRandomMove();
+        // Debug: random play
+        // if (message.getLastMoveType() != MoveType.PASS) playRandomMove();
     }
 
     private void updateBoardStones(GameStateServerMessage message) {
