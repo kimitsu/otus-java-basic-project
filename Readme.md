@@ -37,7 +37,7 @@ Simple Swing Interface
 
 ### Server-side
 
-* Accept messages via socket:
+* Accept connections and process messages via socket:
   * Login: respond with login confirmed or error
   * User list: respond with user list
   * Send challenge: send message to target users
