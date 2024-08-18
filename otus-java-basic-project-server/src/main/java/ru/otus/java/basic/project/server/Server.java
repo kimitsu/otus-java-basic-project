@@ -27,9 +27,9 @@ public class Server implements AutoCloseable {
     private static final Logger log = LogManager.getLogger(Server.class);
     private final AuthenticationProvider authenticationProvider;
     private final int port;
-    private ServerSocket serverSocket;
+    private final ServerSocket serverSocket;
     private final Map<String, ClientConnection> clients = new HashMap<>();
-    private boolean serverIsClosing = false;
+    private boolean isClosing = false;
 
     public Server(int port) throws IOException, AuthenticationException {
         this.port = port;
@@ -49,14 +49,14 @@ public class Server implements AutoCloseable {
             log.trace("Awaiting connection");
             new ClientConnection(this, serverSocket.accept());
         } catch (IOException e) {
-            if (!serverIsClosing) log.error("Error while accepting socket connection", e);
+            if (!isClosing) log.error("Error while accepting socket connection", e);
         }
     }
 
     @Override
     public void close() {
         log.info("Server is closing");
-        serverIsClosing = true;
+        isClosing = true;
         for (ClientConnection client : clients.values()) {
             client.close();
         }
@@ -83,7 +83,7 @@ public class Server implements AutoCloseable {
     }
 
     public void removeClient(ClientConnection clientConnection) {
-        if (serverIsClosing) return;
+        if (isClosing) return;
         synchronized (clients) {
             if (clientConnection.getName() == null) return;
             clients.remove(clientConnection.getName());

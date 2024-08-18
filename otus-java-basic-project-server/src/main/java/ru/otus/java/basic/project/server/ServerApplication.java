@@ -12,26 +12,14 @@ import java.io.IOException;
 public class ServerApplication {
     private static final Logger log = LogManager.getLogger(ServerApplication.class);
     private static final int DEFAULT_PORT = 35555;
+    private static final Thread mainThread = Thread.currentThread();
+    private static Server server;
 
     public static void main(String[] args) {
-        Thread mainThread = Thread.currentThread();
-        Server server;
         try {
             int port = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
             server = new Server(port);
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                synchronized (mainThread) {
-                    log.info("Shutdown signal received");
-                    server.close();
-                    try {
-                        mainThread.wait();
-                    } catch (InterruptedException e) {
-                        log.error("Thread interrupted", e);
-                    }
-                    log.trace("Shutdown complete");
-                    LogManager.shutdown(false, true);
-                }
-            }));
+            Runtime.getRuntime().addShutdownHook(new Thread(ServerApplication::shutdown));
             server.start();
         } catch (NumberFormatException e) {
             log.fatal("Invalid port number");
@@ -43,6 +31,20 @@ public class ServerApplication {
         log.info("Server stopped");
         synchronized (mainThread) {
             mainThread.notifyAll();
+        }
+    }
+
+    private static void shutdown() {
+        synchronized (mainThread) {
+            log.info("Shutdown signal received");
+            server.close();
+            try {
+                mainThread.wait();
+            } catch (InterruptedException e) {
+                log.error("Thread interrupted", e);
+            }
+            log.trace("Shutdown complete");
+            LogManager.shutdown(false, true);
         }
     }
 }

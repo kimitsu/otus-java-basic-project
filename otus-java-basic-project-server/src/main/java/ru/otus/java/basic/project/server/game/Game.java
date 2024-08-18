@@ -1,7 +1,5 @@
 package ru.otus.java.basic.project.server.game;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import ru.otus.java.basic.project.api.context.Context;
 import ru.otus.java.basic.project.api.context.GameContext;
 import ru.otus.java.basic.project.api.enums.GameState;
@@ -20,16 +18,14 @@ import java.util.Objects;
 
 /**
  * Represents a single go match.
- * Contains information about the game, processes client messages related to the game.
+ * Contains information about the game, manages game state, processes client messages related to the game.
  */
 public class Game {
-    private static final Logger log = LogManager.getLogger(Game.class);
+    private final Long contextId;
+    private final String whitePlayer;
+    private final String blackPlayer;
 
-    private Long contextId;
-    private String whitePlayer;
-    private String blackPlayer;
-
-    private Board board = new Board();
+    private final Board board = new Board();
 
     private GameState state = GameState.BLACK_TO_MOVE;
     private GameUpdateListener updateListener;
@@ -77,7 +73,6 @@ public class Game {
             default -> throw new MessageProcessingException("Illegal move type");
         }
     }
-
 
     private void processMarkStone(ClientConnection client, GameMoveClientMessage gameMoveClientMessage) throws MessageProcessingException {
         try {
