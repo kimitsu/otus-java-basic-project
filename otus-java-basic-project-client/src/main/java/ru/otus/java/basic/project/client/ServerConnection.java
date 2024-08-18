@@ -6,6 +6,7 @@ import ru.otus.java.basic.project.api.MessageProcessor;
 import ru.otus.java.basic.project.api.context.Context;
 import ru.otus.java.basic.project.api.exceptions.MessageProcessingException;
 import ru.otus.java.basic.project.api.messages.ClientServerMessage;
+import ru.otus.java.basic.project.api.messages.server.ErrorServerMessage;
 import ru.otus.java.basic.project.client.exceptions.ApplicationException;
 import ru.otus.java.basic.project.client.exceptions.InvalidServerMessageException;
 
@@ -29,6 +30,7 @@ public class ServerConnection implements AutoCloseable {
     private DataOutputStream output;
 
     private final Map<Long, Context> contexts = new HashMap<>();
+    private Runnable disconnectListener = null;
 
     public ServerConnection(String hostPort, String name)
             throws IOException, InvalidServerMessageException, IllegalArgumentException, ApplicationException {
@@ -84,12 +86,13 @@ public class ServerConnection implements AutoCloseable {
                 }
             } catch (EOFException e) {
                 log.warn("Connection reset");
-                return;
+                break;
             } catch (IOException e) {
                 log.error("IO Error while reading server message", e);
-                return;
+                break;
             }
         }
+        if (disconnectListener != null) disconnectListener.run();
     }
 
     public void send(ClientServerMessage message) throws MessageProcessingException, IOException {
@@ -133,6 +136,10 @@ public class ServerConnection implements AutoCloseable {
 
     public Context getDefaultContext() {
         return getContext(null);
+    }
+
+    public void setDisconnectListener(Runnable disconnectListener) {
+        this.disconnectListener = disconnectListener;
     }
 }
 

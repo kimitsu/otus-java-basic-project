@@ -43,7 +43,7 @@ public class Server implements AutoCloseable {
             log.trace("Awaiting connection");
             new ClientConnection(this, serverSocket.accept());
         } catch (IOException e) {
-            log.error("Error while accepting socket connection", e);
+            if (!serverIsClosing) log.error("Error while accepting socket connection", e);
         }
     }
 
@@ -54,6 +54,7 @@ public class Server implements AutoCloseable {
         for (ClientConnection client : clients.values()) {
             client.close();
         }
+        log.trace("Client connections closed");
         try {
             if (serverSocket != null) serverSocket.close();
         } catch (IOException e) {

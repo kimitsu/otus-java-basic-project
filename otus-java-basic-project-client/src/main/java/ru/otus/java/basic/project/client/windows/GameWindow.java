@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import ru.otus.java.basic.project.api.context.GameContext;
 import ru.otus.java.basic.project.api.enums.GameState;
 import ru.otus.java.basic.project.api.enums.MoveType;
+import ru.otus.java.basic.project.api.messages.server.ErrorServerMessage;
 import ru.otus.java.basic.project.api.messages.server.GameStateServerMessage;
 import ru.otus.java.basic.project.client.Client;
 import ru.otus.java.basic.project.client.SwingUtils;
@@ -34,6 +35,7 @@ public class GameWindow {
     private GameState state = null;
     private String whitePlayer = null;
     private String blackPlayer = null;
+    private GameStateServerMessage lastMessage = null;
 
     public GameWindow(Client client) {
         this.client = client;
@@ -158,6 +160,7 @@ public class GameWindow {
         whitePlayer = null;
         blackPlayer = null;
         state = null;
+        lastMessage = null;
         setCanMarkDeadStones(false);
         setCanPlayMove(false);
         setCanResignOrDone(false);
@@ -166,18 +169,35 @@ public class GameWindow {
         client.requestGameInfoAsync()
                 .thenApply((result) -> {
                     gameContext = result;
+                    gameContext.setListener(ErrorServerMessage.class, this::displayError);
                     whitePlayer = gameContext.getWhitePlayer();
                     blackPlayer = gameContext.getBlackPlayer();
                     titleLabel.setText(STR."(W) \{whitePlayer} | (B) \{blackPlayer}");
                     return result;
+                })
+                .exceptionallyAsync((e) -> {
+                    JOptionPane.showMessageDialog(frame, e.getCause().getCause().getMessage(), e.getCause().getMessage(), JOptionPane.ERROR_MESSAGE);
+                    frame.setVisible(false);
+                    client.enableLobby();
+                    return null;
                 });
+    }
+
+    private void displayError(ErrorServerMessage message) {
+        JOptionPane.showMessageDialog(frame, message.getErrorMessage(), "Game Error", JOptionPane.ERROR_MESSAGE);
+        if (lastMessage != null) {
+            update(lastMessage);
+        } else {
+            frame.setVisible(false);
+            client.enableLobby();
+        }
     }
 
     public void update(GameStateServerMessage message) {
         updateBoardStones(message);
         updateBoardTerritory(message);
         updateGameState(message);
-
+        lastMessage = message;
         // TODO Remove debug random play
         if (message.getLastMoveType() != MoveType.PASS) playRandomMove();
     }

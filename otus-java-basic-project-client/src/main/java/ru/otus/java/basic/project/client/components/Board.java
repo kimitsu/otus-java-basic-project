@@ -30,7 +30,6 @@ public class Board extends JPanel {
     private double gridWidth = 1.0;
     private double gridHeight = 1.0;
     private StoneColor[][] stones = new StoneColor[BOARD_SIZE][BOARD_SIZE];
-    private int[][] liberties = new int[BOARD_SIZE][BOARD_SIZE];
     private Consumer<Point> moveListener = null;
     private Consumer<Point> markListener = null;
     private Point lastMove = null;
@@ -133,20 +132,20 @@ public class Board extends JPanel {
         int yEnd = getHeight() - yBegin;
         double xPosition = xBegin;
         double yPosition = yBegin;
-        for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int x = 0; x < BOARD_SIZE; x++) {
             g.drawLine((int) Math.round(xPosition), yBegin, (int) Math.round(xPosition), yEnd);
             xPosition += xStep;
         }
-        for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int y = 0; y < BOARD_SIZE; y++) {
             g.drawLine(xBegin, (int) Math.round(yPosition), xEnd, (int) Math.round(yPosition));
             yPosition += yStep;
         }
         int hoshiRadius = (int) Math.round((Math.min(xStep, yStep) - 2) * HOSHI_RATIO);
         g.setColor(HOSHI_COLOR);
-        for (int i = 0; i < HOSHI_POSITIONS.length; i++) {
-            for (int j = 0; j < HOSHI_POSITIONS.length; j++) {
-                xPosition = xBegin + xStep * HOSHI_POSITIONS[i];
-                yPosition = yBegin + yStep * HOSHI_POSITIONS[j];
+        for (int y = 0; y < HOSHI_POSITIONS.length; y++) {
+            for (int x = 0; x < HOSHI_POSITIONS.length; x++) {
+                xPosition = xBegin + xStep * HOSHI_POSITIONS[x];
+                yPosition = yBegin + yStep * HOSHI_POSITIONS[y];
                 g.fillArc((int) Math.round(xPosition) - hoshiRadius, (int) Math.round(yPosition) - hoshiRadius, hoshiRadius * 2 + 1, hoshiRadius * 2 + 1, 0, 360);
 
             }
@@ -164,27 +163,24 @@ public class Board extends JPanel {
         int stoneRadius = (int) Math.round((Math.min(xStep, yStep) - 2) * STONE_RATIO);
         int lastMoveMarkRadius = (int) Math.round((Math.min(xStep, yStep) - 2) * LAST_MOVE_MARK_RATIO);
         yPosition = yBegin;
-        for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int y = 0; y < BOARD_SIZE; y++) {
             xPosition = xBegin;
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                if (stones[i][j].getShouldDraw()) {
-                    g.setColor(stones[i][j].getFillColor());
+            for (int x = 0; x < BOARD_SIZE; x++) {
+                if (stones[y][x].getShouldDraw()) {
+                    g.setColor(stones[y][x].getFillColor());
                     g.fillArc((int) Math.round(xPosition) - stoneRadius, (int) Math.round(yPosition) - stoneRadius, stoneRadius * 2 + 1, stoneRadius * 2 + 1, 0, 360);
-                    g.setColor(stones[i][j].getBorderColor());
+                    g.setColor(stones[y][x].getBorderColor());
                     g.drawArc((int) Math.round(xPosition) - stoneRadius, (int) Math.round(yPosition) - stoneRadius, stoneRadius * 2 + 1, stoneRadius * 2 + 1, 0, 360);
-                    if (lastMove != null && lastMove.x == j && lastMove.y == i) {
-                        g.setColor(stones[i][j].getLastMoveMarkColor());
+                    if (lastMove != null && lastMove.x == x && lastMove.y == y) {
+                        g.setColor(stones[y][x].getLastMoveMarkColor());
                         g.drawArc((int) Math.round(xPosition) - lastMoveMarkRadius, (int) Math.round(yPosition) - lastMoveMarkRadius, lastMoveMarkRadius * 2 + 1, lastMoveMarkRadius * 2 + 1, 0, 360);
                     }
-                } else if (canPlayMove && ghostStoneX == j && ghostStoneY == i && stones[i][j].canPlay(moveColor)) {
+                } else if (canPlayMove && ghostStoneX == x && ghostStoneY == y && stones[y][x].canPlay(moveColor)) {
                     g.setColor(new Color(moveColor.getFillColor().getRGB() + GHOST_STONE_ALPHA, true));
                     g.fillArc((int) Math.round(xPosition) - stoneRadius, (int) Math.round(yPosition) - stoneRadius, stoneRadius * 2 + 1, stoneRadius * 2 + 1, 0, 360);
                     g.setColor(new Color(moveColor.getBorderColor().getRGB() + GHOST_STONE_ALPHA, true));
                     g.drawArc((int) Math.round(xPosition) - stoneRadius, (int) Math.round(yPosition) - stoneRadius, stoneRadius * 2 + 1, stoneRadius * 2 + 1, 0, 360);
                 }
-//                g.setColor(Color.RED);
-//                g.drawString(Integer.toString(liberties[i][j]), (int) Math.round(xPosition) , (int) Math.round(yPosition) );
-
                 xPosition += xStep;
             }
             yPosition += yStep;
@@ -235,10 +231,6 @@ public class Board extends JPanel {
     public void setStones(StoneColor[][] stones) {
         this.stones = stones;
         repaint();
-    }
-
-    public void setLiberties(int[][] liberties) {
-        this.liberties = liberties;
     }
 
     public StoneColor[][] getStones() {

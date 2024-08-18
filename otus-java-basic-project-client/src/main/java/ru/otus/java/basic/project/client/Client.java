@@ -17,6 +17,7 @@ import ru.otus.java.basic.project.client.exceptions.InvalidServerMessageExceptio
 import ru.otus.java.basic.project.client.exceptions.ServerError;
 import ru.otus.java.basic.project.client.windows.*;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -86,6 +87,10 @@ public class Client implements AutoCloseable {
             try {
                 log.trace("Creating server connection");
                 serverConnection = new ServerConnection(hostPort, name);
+                serverConnection.setDisconnectListener(() -> {
+                    JOptionPane.showMessageDialog(null, "Disconnected from server", "Error", JOptionPane.ERROR_MESSAGE);
+                    close();
+                });
                 log.trace("Server connection created");
             } catch (IllegalArgumentException e) {
                 throw new ApplicationException("Incorrect input", e);

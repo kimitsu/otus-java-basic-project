@@ -28,6 +28,7 @@ public class ClientConnection implements AutoCloseable {
     private static final Logger log = LogManager.getLogger(ClientConnection.class);
     private static int idCounter = 0;
     private final int id;
+    private final Thread listenerThread;
     private Socket socket;
     private DataInputStream input;
     private DataOutputStream output;
@@ -35,6 +36,7 @@ public class ClientConnection implements AutoCloseable {
     private final Server server;
     private final Map<Long, Context> contexts = new HashMap<>();
     private Game game;
+    private boolean isClosing = false;
 
     public ClientConnection(Server server, Socket socket) throws IOException {
         this.server = server;
@@ -44,7 +46,8 @@ public class ClientConnection implements AutoCloseable {
         this.input = new DataInputStream(socket.getInputStream());
         this.output = new DataOutputStream(socket.getOutputStream());
         initDefaultContext();
-        new Thread(this::listen).start();
+        this.listenerThread = new Thread(this::listen);
+        this.listenerThread.start();
     }
 
     private void listen() {
@@ -57,6 +60,9 @@ public class ClientConnection implements AutoCloseable {
             log.info("Client {} had disconnected", id);
         } finally {
             close();
+            synchronized (listenerThread) {
+                listenerThread.notifyAll();
+            }
         }
     }
 
@@ -71,9 +77,10 @@ public class ClientConnection implements AutoCloseable {
                 log.error("Invalid message received from client {}", id, e);
                 send(new ErrorServerMessage(null, "Invalid Message Error"));
             } catch (IOException e) {
-                log.error("IO Error while reading from socket (client {})", id, e);
-                send(new ErrorServerMessage(null, "Server IO Error"));
-                // TODO send(ByeServerMessage())
+                if (!isClosing) {
+                    log.error("IO Error while reading from socket (client {})", id, e);
+                    send(new ErrorServerMessage(null, "Server IO Error"));
+                }
                 throw new ClientDisconnectedException();
             }
         } catch (IOException e) {
@@ -267,23 +274,33 @@ public class ClientConnection implements AutoCloseable {
 
     @Override
     public void close() {
-        log.info("Closing client connection {}", id);
-        try {
-            if (output != null) output.close();
-        } catch (IOException e) {
-            log.error("Error while closing data stream", e);
+        synchronized (listenerThread) {
+            isClosing = true;
+            log.info("Closing client connection {}", id);
+            try {
+                if (output != null) output.close();
+            } catch (IOException e) {
+                log.error("Error while closing data stream", e);
+            }
+            try {
+                if (input != null) input.close();
+            } catch (IOException e) {
+                log.error("Error while closing data stream", e);
+            }
+            try {
+                if (socket != null) socket.close();
+            } catch (IOException e) {
+                log.error("Error while closing socket", e);
+            }
+            server.removeClient(this);
+            try {
+                if (!listenerThread.equals(Thread.currentThread())) {
+                    listenerThread.wait();
+                }
+            } catch (InterruptedException e) {
+                log.error("Thread interrupted", e);
+            }
         }
-        try {
-            if (input != null) input.close();
-        } catch (IOException e) {
-            log.error("Error while closing data stream", e);
-        }
-        try {
-            if (socket != null) socket.close();
-        } catch (IOException e) {
-            log.error("Error while closing socket", e);
-        }
-        server.removeClient(this);
     }
 
     private <T extends Context> T getContext(Long id, Class<T> contextClass) throws MessageProcessingException {

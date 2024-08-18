@@ -10,15 +10,23 @@ public class ServerApplication {
     private static final int DEFAULT_PORT = 35555;
 
     public static void main(String[] args) {
+        Thread mainThread = Thread.currentThread();
         Server server;
         try {
             int port = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
             server = new Server(port);
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                log.info("Shutdown signal received");
-                server.close();
-
-                // TODO Check if all sockets are closed
+                synchronized (mainThread) {
+                    log.info("Shutdown signal received");
+                    server.close();
+                    try {
+                        mainThread.wait();
+                    } catch (InterruptedException e) {
+                        log.error("Thread interrupted", e);
+                    }
+                    log.trace("Shutdown complete");
+                    LogManager.shutdown(false, true);
+                }
             }));
             server.start();
         } catch (NumberFormatException e) {
@@ -26,7 +34,9 @@ public class ServerApplication {
         } catch (IOException e) {
             log.fatal("Server socket error", e);
         }
-        // TODO Ensure we reach this on Ctrl-C
-        log.trace("Server stopped");
+        log.info("Server stopped");
+        synchronized (mainThread) {
+            mainThread.notifyAll();
+        }
     }
 }
