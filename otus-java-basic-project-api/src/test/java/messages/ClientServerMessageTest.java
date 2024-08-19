@@ -4,14 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import ru.otus.java.basic.project.api.enums.MoveType;
-import ru.otus.java.basic.project.api.messages.client.GameMoveClientMessage;
 import ru.otus.java.basic.project.api.enums.ChallengeResponse;
+import ru.otus.java.basic.project.api.enums.MoveType;
+import ru.otus.java.basic.project.api.exceptions.MessageProcessingException;
 import ru.otus.java.basic.project.api.messages.ClientServerMessage;
 import ru.otus.java.basic.project.api.messages.client.ChallengeResponseClientMessage;
+import ru.otus.java.basic.project.api.messages.client.GameMoveClientMessage;
 import ru.otus.java.basic.project.api.messages.client.GetListClientMessage;
 import ru.otus.java.basic.project.api.messages.client.OutgoingChallengeClientMessage;
-import ru.otus.java.basic.project.api.exceptions.MessageProcessingException;
 import ru.otus.java.basic.project.api.messages.server.ClientListServerMessage;
 
 import java.util.Arrays;
@@ -64,19 +64,19 @@ class ClientServerMessageTest {
     @Test
     public void shouldSerializeMove() throws MessageProcessingException {
         String json = "{\"m\":\"GAME_MOVE\",\"ctx\":123,\"m\":\"STONE\",\"x\":2,\"y\":3}";
-        ClientServerMessage message = new GameMoveClientMessage(123L, MoveType.STONE, 2,3);
+        ClientServerMessage message = new GameMoveClientMessage(123L, MoveType.STONE, 2, 3);
         assertEquals(json, message.serialize());
     }
     @Test
     public void shouldDeserializeMove() throws MessageProcessingException {
         String json = "{\"m\":\"GAME_MOVE\",\"ctx\":123,\"m\":\"STONE\",\"x\":2,\"y\":3}";
-        ClientServerMessage message = new GameMoveClientMessage(123L, MoveType.STONE,2,3);
+        ClientServerMessage message = new GameMoveClientMessage(123L, MoveType.STONE, 2, 3);
         assertEquals(message, ClientServerMessage.deserialize(json));
     }
     @Test
     public void shouldDistinguishMoves() throws MessageProcessingException {
         String json = "{\"m\":\"GAME_MOVE\",\"ctx\":123,\"m\":\"STONE\",\"x\":2,\"y\":3}";
-        ClientServerMessage message = new GameMoveClientMessage(123L, MoveType.STONE,2,4);
+        ClientServerMessage message = new GameMoveClientMessage(123L, MoveType.STONE, 2, 4);
         assertNotEquals(message, ClientServerMessage.deserialize(json));
     }
 
